@@ -1,0 +1,100 @@
+package quiz5;
+
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserInteractionManager {
+    private CommunicationManager communicationManager;
+    private List<MessageEntry> messageHistory;
+    private Scanner scanner;
+
+    public UserInteractionManager(CommunicationManager communicationManager) {
+        this.communicationManager = communicationManager;
+        this.messageHistory = new ArrayList<>();
+        this.scanner = new Scanner(System.in);
+    }
+
+    public void startChat() {
+        System.out.println("Welcome to the chatbot! Type 'exit' to end the conversation.");
+        
+        while (true) {
+            System.out.print("You: ");
+            String userInput = scanner.nextLine();
+            
+            if ("exit".equalsIgnoreCase(userInput)) {
+                System.out.println("Goodbye!");
+                break;
+            }
+            
+            messageHistory.add(new MessageEntry("user", userInput));
+            
+            String response = communicationManager.sendMessage(userInput, messageHistory);
+            System.out.println("Bot: " + response);
+            
+            messageHistory.add(new MessageEntry("bot", response));
+        }
+        
+        scanner.close();
+    }
+}
+
+class MessageEntry {
+    String sender;
+    String content;
+
+    MessageEntry(String sender, String content) {
+        this.sender = sender;
+        this.content = content;
+    }
+}
+
+package quiz5;
+
+import java.util.List;
+import org.json.JSONObject;
+import org.json.JSONArray;
+
+public class CommunicationManager {
+    private String serviceUrl;
+
+    public CommunicationManager(String serviceUrl) {
+        this.serviceUrl = serviceUrl;
+    }
+
+    public String sendMessage(String userMessage, List<MessageEntry> messageHistory) {
+        JSONObject requestBody = createRequestBody(userMessage, messageHistory);
+        
+        // In a real implementation, this would send an HTTP POST request
+        // For now, we'll just return a dummy response
+        return sendPostRequest(requestBody);
+    }
+
+    private JSONObject createRequestBody(String userMessage, List<MessageEntry> messageHistory) {
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("userMessage", userMessage);
+
+        JSONObject conversationContext = new JSONObject();
+        conversationContext.put("sessionId", "dummy-session-id");
+
+        JSONArray messageHistoryArray = new JSONArray();
+        for (MessageEntry entry : messageHistory) {
+            JSONObject messageEntry = new JSONObject();
+            messageEntry.put("sender", entry.sender);
+            messageEntry.put("content", entry.content);
+            messageHistoryArray.put(messageEntry);
+        }
+        conversationContext.put("messageHistory", messageHistoryArray);
+
+        requestBody.put("conversationContext", conversationContext);
+
+        return requestBody;
+    }
+
+    private String sendPostRequest(JSONObject requestBody) {
+        // This is a dummy implementation
+        System.out.println("Sending request to " + serviceUrl);
+        System.out.println("Request body: " + requestBody.toString(2));
+        return "This is a dummy response from the chatbot service.";
+    }
+}
