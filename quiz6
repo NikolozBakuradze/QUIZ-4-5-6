@@ -1,0 +1,73 @@
+package quiz6;
+
+import java.util.List;
+import org.json.JSONObject;
+import org.json.JSONArray;
+
+public class SpecialCommunicationManager {
+    private String commonServiceUrl;
+    private String specialServiceUrl;
+
+    public SpecialCommunicationManager(String commonServiceUrl, String specialServiceUrl) {
+        this.commonServiceUrl = commonServiceUrl;
+        this.specialServiceUrl = specialServiceUrl;
+    }
+
+    public String sendMessage(String userMessage, List<MessageEntry> messageHistory) {
+        JSONObject requestBody = createRequestBody(userMessage, messageHistory);
+        
+        String serviceUrl = determineServiceUrl(userMessage, messageHistory);
+        
+        // In a real implementation, this would send an HTTP POST request
+        // For now, we'll just return a dummy response
+        return sendPostRequest(serviceUrl, requestBody);
+    }
+
+    private String determineServiceUrl(String userMessage, List<MessageEntry> messageHistory) {
+        if (userMessage.toLowerCase().contains("help") || 
+            messageHistory.stream().anyMatch(entry -> entry.content.toLowerCase().contains("help"))) {
+            return specialServiceUrl;
+        }
+        return commonServiceUrl;
+    }
+
+    private JSONObject createRequestBody(String userMessage, List<MessageEntry> messageHistory) {
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("userMessage", userMessage);
+
+        JSONObject conversationContext = new JSONObject();
+        conversationContext.put("sessionId", "dummy-session-id");
+
+        JSONArray messageHistoryArray = new JSONArray();
+        for (MessageEntry entry : messageHistory) {
+            JSONObject messageEntry = new JSONObject();
+            messageEntry.put("sender", entry.sender);
+            messageEntry.put("content", entry.content);
+            messageHistoryArray.put(messageEntry);
+        }
+        conversationContext.put("messageHistory", messageHistoryArray);
+
+        requestBody.put("conversationContext", conversationContext);
+
+        return requestBody;
+    }
+
+    private String sendPostRequest(String serviceUrl, JSONObject requestBody) {
+        // This is a dummy implementation
+        System.out.println("Sending request to " + serviceUrl);
+        System.out.println("Request body: " + requestBody.toString(2));
+        return "This is a dummy response from the " + 
+               (serviceUrl.equals(specialServiceUrl) ? "special" : "common") + 
+               " chatbot service.";
+    }
+}
+
+class MessageEntry {
+    String sender;
+    String content;
+
+    MessageEntry(String sender, String content) {
+        this.sender = sender;
+        this.content = content;
+    }
+}
